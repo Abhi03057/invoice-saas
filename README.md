@@ -1,17 +1,48 @@
 # Multi-Tenant Invoice Processing SaaS with Asynchronous Job Queue
 
-A full-stack SaaS platform that allows companies to upload invoices via API and extract structured data.
+A full-stack invoice processing platform with async job handling.
 
-## Tech Stack
+## 🚀 Features
 
-- Node.js
-- Express
+- PDF upload & validation
+- Async processing using BullMQ + Redis
+- Background worker for invoice parsing
+- Multi-tenant architecture (JWT-based auth)
+- Real-time document status tracking
+- Dashboard analytics
+
+## 🧠 Architecture
+
+Frontend (React)
+→ Express API
+→ PostgreSQL
+→ Redis Queue (BullMQ)
+→ Worker
+→ Invoice Parser
+
+## ⚙️ Tech Stack
+
+- Node.js, Express
 - PostgreSQL
-- Redis (planned)
-- JWT Authentication
+- Redis + BullMQ
+- React (Vite)
 
-## Features Implemented
+## 📦 Setup
 
-- Organization registration API
-- User creation with bcrypt password hashing
-- PostgreSQL database schema
+### Backend
+npm install  
+npm run dev  
+
+### Worker
+node workers/documentWorker.js  
+
+### Frontend
+cd frontend/invoice-dashboard  
+npm install  
+npm run dev  
+
+## 🔥 Highlights
+
+- Queue-based async processing (production-style)
+- Retry + failure handling
+- Clean separation of API, queue, and worker
