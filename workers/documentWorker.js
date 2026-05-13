@@ -1,12 +1,11 @@
+require("dotenv").config();
 const { Worker } = require("bullmq");
 const IORedis = require("ioredis");
 const pool = require("../db/connection");
 const parseInvoice = require("../services/invoiceParser");
 
-const connection = new IORedis({
-  host: "127.0.0.1",
-  port: 6379,
-  maxRetriesPerRequest: null
+const connection = new IORedis(process.env.REDIS_URL, {
+  maxRetriesPerRequest: null,
 });
 
 const worker = new Worker(
