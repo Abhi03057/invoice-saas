@@ -1,8 +1,13 @@
 require("dotenv").config();
+
+const express = require("express");
 const { Worker } = require("bullmq");
 const IORedis = require("ioredis");
+
 const pool = require("../db/connection");
 const parseInvoice = require("../services/invoiceParser");
+
+const app = express();
 
 const connection = new IORedis(process.env.REDIS_URL, {
   maxRetriesPerRequest: null,
@@ -11,11 +16,9 @@ const connection = new IORedis(process.env.REDIS_URL, {
 const worker = new Worker(
   "document-processing",
   async (job) => {
-
     const { documentId, filePath } = job.data;
 
     try {
-
       console.log("Processing document:", documentId);
 
       // 1️⃣ mark document as processing
@@ -33,13 +36,15 @@ const worker = new Worker(
       if (
         !extractedData ||
         (!extractedData.invoice_number &&
-         !extractedData.vendor &&
-         !extractedData.total)
+          !extractedData.vendor &&
+          !extractedData.total)
       ) {
-        throw new Error("Invoice parsing failed: no useful data extracted");
+        throw new Error(
+          "Invoice parsing failed: no useful data extracted"
+        );
       }
 
-      // 4️⃣ insert or update invoice data
+      // 4️⃣ insert/update invoice data
       await pool.query(
         `INSERT INTO invoice_data
         (document_id, invoice_number, vendor, invoice_date, amount)
@@ -55,7 +60,7 @@ const worker = new Worker(
           extractedData.invoice_number,
           extractedData.vendor,
           extractedData.invoice_date,
-          extractedData.total
+          extractedData.total,
         ]
       );
 
@@ -68,17 +73,19 @@ const worker = new Worker(
       console.log("Finished processing:", documentId);
 
     } catch (error) {
+      console.error(
+        "Processing failed for document:",
+        documentId
+      );
 
-      console.error("Processing failed for document:", documentId);
       console.error(error.message);
 
-      // 6️⃣ mark document failed
+      // 6️⃣ mark failed
       await pool.query(
         "UPDATE documents SET status='failed' WHERE id=$1",
         [documentId]
       );
 
-      // throw error so BullMQ can retry the job
       throw error;
     }
   },
@@ -86,3 +93,14 @@ const worker = new Worker(
 );
 
 console.log("Worker started");
+
+/* 🔥 Render health server */
+app.get("/", (req, res) => {
+  res.send("Invoice worker is running");
+});
+
+const PORT = process.env.PORT || 10000;
+
+app.listen(PORT, () => {
+  console.log(`Worker health server running on port ${PORT}`);
+});
