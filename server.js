@@ -19,6 +19,12 @@ app.use("/users", userRoutes);
 app.use("/documents", documentRoutes);
 app.use("/stats", statsRoutes);
 
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+app.get("/", (req, res) => {
+  res.send("Invoice Processing SaaS API is running");
+});
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
