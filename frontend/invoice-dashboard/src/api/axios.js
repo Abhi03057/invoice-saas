@@ -1,22 +1,27 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000", // ✅ correct backend port
+  baseURL: "https://invoice-processing-saas-eanf.onrender.com",
 });
 
 api.interceptors.request.use((cfg) => {
-  const t = localStorage.getItem("token");
-  if (t) cfg.headers.Authorization = `Bearer ${t}`;
+  const token = localStorage.getItem("token");
+
+  if (token) {
+    cfg.headers.Authorization = `Bearer ${token}`;
+  }
+
   return cfg;
 });
 
 api.interceptors.response.use(
-  (r) => r,
+  (res) => res,
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem("token");
       window.location.href = "/";
     }
+
     return Promise.reject(err);
   }
 );
